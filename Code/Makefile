@@ -9,7 +9,7 @@ UBUNTUFLAGS=-lm $(LDFLAGS) -lstdc++ -std=c++11 -fopenmp
 OPENSUSEFLAGS=-lm $(LDFLAGS)
 DEBUG=-O2
 OBJS:=main.o Benchmark.o EvolutiveAlgorithm.o Individual.o MOEAD_Diversity.o Objectives.o EAOperators.o DecompositionMethods.o wfg/WFG1/WFG1.o wfg/WFG2/WFG2.o wfg/WFG3/WFG3.o wfg/WFG4/WFG4.o wfg/WFG5/WFG5.o wfg/WFG6/WFG6.o wfg/WFG7/WFG7.o wfg/WFG8/WFG8.o wfg/WFG9/WFG9.o 
-MAIN=Ejecutable
+MAIN=MOEAD_EVSD
 all:$(MAIN)
 ubuntu:
 	$(MAKE) "OPENSUSEFLAGS="
