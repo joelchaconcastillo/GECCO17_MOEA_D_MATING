@@ -2,8 +2,7 @@
     Autor: Joel Chacón Castillo
     Fecha: 01/10/2016
     Descripción:
-      Fichero que implementa el algoritmo de MOEAD,
-      tiene dependencia de la clase Individual y Benchmark.
+	This is the principal script representing the MOEA/D-EVSD
 **/
 #include <fstream>
 #include <cstdio>
