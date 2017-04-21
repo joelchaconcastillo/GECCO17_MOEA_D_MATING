@@ -40,11 +40,6 @@ class MOEAD : public EvolutiveAlgorithm
             //bool operator()(int i, int j){return i < j;}
             int IndexObjective;
         };
-        void PlotInterfaceRSpaceObjective();
-        void PlotInterfaceRSpaceVariables();
-	void PlotInterfaceRSpaceObjectiveEP();
-        //void getSolutions(vector<vector<double>> &SetFront, vector<vector<double>> &SetParetoOptimal, vector<int> &IndexBoundsObjectives);
-        //void WriteFilePool();
     private:
         Benchmark *ObjBenchmark;
         int SizePool, NumberObjectives, Dimension, TotalGenerations, CurrentGeneration, T;
@@ -81,8 +76,5 @@ class MOEAD : public EvolutiveAlgorithm
         double getRandom(double Min, double Max);
         void End();
 };
-//vector< Individual > operator+(vector<Individual> PoolA, vector<Individual> PoolB );
-//ostream & operator << ( ostream &out,vector<Individual> Pool);
-//ostream & operator << ( ostream &out,vector<double> data);
 
 #endif // MOEAD_HPP_INCLUDED

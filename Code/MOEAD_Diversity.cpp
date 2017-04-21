@@ -17,47 +17,7 @@
 #include "Benchmark.hpp"
 #include "Individual.hpp"
 #include "MOEAD_Diversity.hpp"
-/**
-  Sobrecarga de operadores...
-**/
-inline ostream & operator << ( ostream &out,vector<Individual> Pool)
-{
-    for(int i = 0; i < Pool.size(); i++)
-    {
-        for(int j = 0; j < Pool[i].getObjectives().getNumberObjectives() ; j++)
-         out << Pool[i].getObjectives().SpaceObjectives[j].Fitness<<" ";
-         out << endl;
-    }
-    return out;
-}
-inline ostream & operator << ( ostream &out,vector<double> data)
-{
-    for(int i = 0; i < data.size(); i++)
-    {
-        out << data << endl;
-    }
-    return out;
-}
-/**
-    Operador para realizar la suma de dos poblaciones...
-**/
-inline vector<Individual> operator+(vector<Individual> PoolA, vector<Individual> PoolB )
-{
-    vector<Individual> C;
-    for(int i=0 ; i < PoolA.size(); i++ )
-        C.push_back(PoolA[i]);
-    for(int i = 0; i < PoolB.size(); i++)
-        C.push_back(PoolB[i]);
-    return C;
-}
-/**
-    Se implementa una sobrecarga para el Constructor donde
-    uno es para problemas continuos y el otro para problemas
-    discretos.
-**/
-/**
-  Constructor del MOEAD para problemas discretos
-**/
+
 MOEAD::MOEAD(int SizePool, double ProbCross, int NBitsMut, Benchmark &ObjBenchmark, int NumberGenerations, string ProblemName, int Semilla, string Ruta, string Label, int PeriodReport, int IdCrossover, int IdMutation )
 {
     srand(Semilla);
@@ -88,7 +48,6 @@ MOEAD::MOEAD(int SizePool, double ProbCross, int NBitsMut, Benchmark &ObjBenchma
 	SummaryFen << "Total_Generations\t" << this->NumberGenerations<< "\tDimension\t"<< this->Dimension <<endl;
 	SummaryFit << "Total_Generations\t" << this->NumberGenerations<< "\tNumber_Objectives\t"<< this->NumberObjectives <<endl;
 
- //this->FileNameSummary = FileNameSummary ;
 
 }
 /**
@@ -124,8 +83,6 @@ MOEAD::MOEAD(int SizePool, double ProbCross, double ProbMut ,Benchmark &ObjBench
 	SummaryFen.open (this->FilenameFenotype);
 	SummaryFit.open (this->FilenameFitness);
 
-//	SummaryFen << "Total_Generations\t" << this->NumberGenerations<< "\tDimension\t"<< this->Dimension <<endl;
-//	SummaryFit << "Total_Generations\t" << this->NumberGenerations<< "\tNumber_Objectives\t"<< this->NumberObjectives <<endl;
 ;
 }
 /**
@@ -153,11 +110,7 @@ void MOEAD::Init_MOEAD()
 	//Improve();
         while(CriterionStop())
         {
-	//   double gamma = 0.80;
-	//   double max = 0.1*SizePool;
-	//T = ceil((max)/(1 + exp(-20 * ((  ((double)this->CurrentGeneration)/NumberGenerations) - gamma) )))+1; 
-	//T %=SizePool;
-	//T = ceil((CurrentGeneration*max)/NumberGenerations);
+
 	 this->Neightborhood.clear();
 	    InitNeighborhood();
 	  vector<Individual> tmp = Pool_P;	
@@ -177,33 +130,13 @@ void MOEAD::Init_MOEAD()
 		   UpdateReference(X);
 		   //2.4) Update Neightboring Solutions.
 		   UpdateNeighBors(X, i);
-		   //2.5) Update EP...	 
-	//	   if(CurrentGeneration %10 == 0)
-	//	   UpdateExternalPopulation();
+	
 	   }
-	if( ((this->CurrentGeneration-1) % (WAG)) == 0 ||  ((this->CurrentGeneration+1) % (WAG)  ) == 0)
-	{
-			this->PlotInterfaceRSpaceObjective();
-	}
-	if((this->CurrentGeneration % WAG  ) == 0 && this->CurrentGeneration > 0)
-	{	
-	//   Improve();
-	   //DeleteOverCrowded();	
-	   //AddSubProblems();
-	}
-		//int Period = this->NumberGenerations/30;
-		if( ! (this->CurrentGeneration % PeriodReport) || this->CurrentGeneration < 1 )
-		{
-			ExportIndividualsFile(this->Pool_P, this->FilenameGenotype, this->FilenameFenotype, this->FilenameFitness, this->CurrentGeneration);
-//			this->PlotInterfaceRSpaceObjective();
-			//this->PlotInterfaceRSpaceVariables();
-			//this->PlotInterfaceRSpaceObjectiveEP();
-			cout << "Generacion...."<<CurrentGeneration<<endl;
-			cout << T<<endl;
-			
-		}
-		if( ! (CurrentGeneration % 100 ))
-			this->PlotInterfaceRSpaceObjective();
+
+	  if( !(this->CurrentGeneration % PeriodReport))
+	   {
+		ExportIndividualsFile(this->Pool_P, this->FilenameGenotype, this->FilenameFenotype, this->FilenameFitness, this->CurrentGeneration);
+	   }
 	    
         }
         End();
@@ -216,6 +149,14 @@ double MOEAD::DistanceVariable(Individual &A, Individual &B)
 	Dist +=(A.getVariable(i)-B.getVariable(i))*(A.getVariable(i)-B.getVariable(i))  ;
    return sqrt(Dist);
 }
+/**
+	Here is applied the variation of mating streategy
+	Note:
+		In this code the Delta value is decremented from 1.0 to 0.5, and represent the probability 
+		of select global individuals at difference that was indicated in the paper from GECCO17 where is 
+		the probability of select a neighbour, then in this code Delta is decremented while in the paper Delta
+		is increased. Anyway the process and results are the same.
+*/
 void MOEAD::Reproduction(Individual &ind, int IndexProblem) // Here add especific mating restriction....
 {
 	vector<int> Mating;
@@ -257,10 +198,6 @@ void MOEAD::Reproduction(Individual &ind, int IndexProblem) // Here add especifi
 	   p2 = Mating[rand()%Mating.size()];
 	}
 		
-//	vector<int> ParentIndex = Neightborhood[IndexProblem];
-//	next_permutation(ParentIndex.begin(), ParentIndex.end());
-	//p1 = ParentIndex[0];
-	//p2 = ParentIndex[1];
 	Individual Trash = ind;//Initialize with same configuration...
 	SBXIndividualHybrid(Pool_P[p1], Pool_P[p2], ind, Trash ,this->ProbCross);
 	if(getRandom(0,1.0) >=0.5)
@@ -273,7 +210,6 @@ void MOEAD::LocalSearch(Individual &ind, int k)
 {
 	double CR = ProbCross;	
 	double F = 0.5;
-	//for(int i = 0; i < Neightborhood[k].size(); i++)
 	for(int i = 0; i < 20; i++)
 	{
 		
@@ -326,23 +262,9 @@ void MOEAD::UpdateExternalPopulation()
 void MOEAD::UpdateNeighBors(Individual &ind, int IdProblem)
 {
    double suiteable = 10000000; 
-   //Found most suitable problem....
-//if( CurrentGeneration > NumberGenerations*ExplotationStage)
-//   for(int i = 0; i < SizePool; i++)
-//   {
-//        if(getFitness(ind, Lambda[i]) < suiteable  )
-//        //if(DistanceVariable(ind, Pool_P[i]) > suiteable  )
-//        {
-//           IdProblem = i;	
-//           suiteable = getFitness(ind, Lambda[i]);
-//        }
-//   }
-
-   int max = 1;
    //For each individual of the Neightborhood	
    for(int i = 0; i < this->Neightborhood[IdProblem].size(); i++)
    {
-//	if(i > max) break;
 	int k = Neightborhood[IdProblem][i];
 	double f1 = getFitness(Pool_P[k], Lambda[k]);
 	double f2 = getFitness(ind, Lambda[k]);
@@ -354,10 +276,7 @@ void MOEAD::UpdateNeighBors(Individual &ind, int IdProblem)
 	}
    }
 }
-//void MOEA::UpdateDCNLambda()
-//{
-//	
-//}
+
 void MOEAD::UpdateReference(Individual &ind)
 {
    for(int i = 0; i < this->NumberObjectives; i++)
@@ -401,12 +320,10 @@ void MOEAD::InitNeighborhood()
 	//Get all euclidean distances of lamnda...
 	for(int j = 0; j < this->SizePool; j++)
 	{
-	  // if(i==j)continue;
 	   X[j] = DistVector(this->DirectionVectors[i], this->DirectionVectors[j]);
 	   Index[j] = j;
 	}
 	//Sort and get the first T index...
-
 	FastSort(X, Index, this->T);	
 	for(int k = 0; k < this->T; k++)
 	this->Neightborhood[i][k] = Index[k];
@@ -463,11 +380,6 @@ void MOEAD::ComputeDirectionVectors()
 	for(int i =0 ; i < this->SizePool; i++)
 	{
 	   Transformation_WS(Lambda[i], DirectionVectors[i]);
-	   //for(int j = 0; j < this->NumberObjectives; j++)
-	   //{
-	   //     cout << DirectionVectors[i][j] << " ";
-	   //}
-	//cout << endl;
 	}
 }
 void MOEAD::InitUniformWeight()
@@ -519,82 +431,14 @@ bool MOEAD::CriterionStop()
         return false;
     }
 }
-void MOEAD::PlotInterfaceRSpaceObjectiveEP()
-{
-    string Comand, X = "", Y = "";
-
-    for(int i = 0; i < this->EP.size(); i++)
-    {
-            std::stringstream temporal;
-            temporal << EP[i].getObjectives().SpaceObjectives[0].Fitness << " , ";
-            X += temporal.str();
-            temporal.str("");
-            temporal << EP[i].getObjectives().SpaceObjectives[1].Fitness << " , ";
-            Y += temporal.str();
-            temporal.str("");
-    }
-    X = X.substr(0, X.size()-2);
-    Y = Y.substr(0, Y.size()-2);
-    Comand = "echo \"  pdf(file = paste('EXTERNAL_Objective_"+this->ProblemName+"_"+to_string(this->CurrentGeneration)+"','.pdf' , sep = '' )) ;  plot(x = c("+ X +"), y = c("+Y+"), main=('MOEAD Generation "+to_string(this->CurrentGeneration)+"') ,xlab='f1', ylab='f2', ylim=c(0,5), xlim=c(0,4) ) ;    \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-
-    //Comand = "echo \"plot(x = c(3.47788,4), y = c(4,5) ) \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-   // cout << Comand<<endl;
-    system(Comand.c_str());
-}
-void MOEAD::PlotInterfaceRSpaceObjective()
-{
-    string Comand, X = "", Y = "";
-
-    for(int i = 0; i < this->Pool_P.size(); i++)
-    {
-            std::stringstream temporal;
-            temporal << Pool_P[i].getObjectives().SpaceObjectives[0].Fitness << " , ";
-            X += temporal.str();
-            temporal.str("");
-            temporal << Pool_P[i].getObjectives().SpaceObjectives[1].Fitness << " , ";
-            Y += temporal.str();
-            temporal.str("");
-    }
-    X = X.substr(0, X.size()-2);
-    Y = Y.substr(0, Y.size()-2);
-    Comand = "echo \"  pdf(file = paste('Objective_"+this->ProblemName+"_"+to_string(this->CurrentGeneration)+"','.pdf' , sep = '' )) ;  plot(x = c("+ X +"), y = c("+Y+"), main=('MOEAD Generation "+to_string(this->CurrentGeneration)+"') ,xlab='f1', ylab='f2', ylim=c(0,5), xlim=c(0,4) ) ;    \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-
-    //Comand = "echo \"plot(x = c(3.47788,4), y = c(4,5) ) \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-   // cout << Comand<<endl;
-    system(Comand.c_str());
-}
-void MOEAD::PlotInterfaceRSpaceVariables()
-{
-    string Comand, X = "", Y = "";
-
-    for(int i = 0; i < this->Pool_P.size(); i++)
-    {
-            std::stringstream temporal;
-            temporal << Pool_P[i].getFenotype(0) << " , ";
-            X += temporal.str();
-            temporal.str("");
-            temporal << Pool_P[i].getFenotype(1) << " , ";
-            Y += temporal.str();
-            temporal.str("");
-    }
-    X = X.substr(0, X.size()-2);
-    Y = Y.substr(0, Y.size()-2);
-    Comand = "echo \"  pdf(file = paste('Desicion_"+this->ProblemName+"_"+to_string(this->CurrentGeneration)+"','.pdf' , sep = '' )) ;  plot(x = c("+ X +"), y = c("+Y+"), main=('MOEAD Generation "+to_string(this->CurrentGeneration)+"') ,xlab='f1', ylab='f2' ) ;    \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-
-    //Comand = "echo \"plot(x = c(3.47788,4), y = c(4,5) ) \" | R --Silent --no-save 2>/dev/null | tail -n 0";
-   // cout << Comand<<endl;
-    system(Comand.c_str());
-}
 void MOEAD::End()
 {
   ofstream save;
   save.open (FileNameSummary);
-   //save << this->Pool_P.size() << " " << this->NumberObjectives<<endl;
   for(int i = 0; i < (int)this->Pool_P.size(); i++)
   {
     for(int m = 0; m < this->NumberObjectives; m++)
       save << this->Pool_P[i].getObjectiveValue(m)<< " ";
     save << endl;
   }
-//  save << this->Pool_P;
 }
